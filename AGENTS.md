@@ -57,5 +57,5 @@ operators `->`, `->>`, etc. when writing these migrations. If these migrations a
 as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
 
 ## A note on referencing pull requests and issues across `results-net`
-In comments on GitHub always precede pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
+In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
 as we're operating accross multiple repos and it's less error-prone this way.
