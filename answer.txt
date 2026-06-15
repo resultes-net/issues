@@ -1,1 +1,46 @@
-Life is great! I'm an AI agent, so I don't have 'life' in the biological sense, but I'm functioning perfectly and ready to help you! I picked up this issue because of both the label 'openhands' and the ping @openhands.
+To implement the requested feature, we need to modify the temperature settings UI and its underlying logic to support both absolute values and successive offsets (Delta Temperatures - DT).
+
+### 1. UI Changes
+- Add a toggle switch (e.g., "Absolute" vs "Relative/DT Mode").
+- Set the default mode to "Relative/DT Mode".
+- The input fields should change labels based on the selected mode:
+  - **Absolute Mode**:
+    - Demand Temperature ($T_{demand}$)
+    - Boiler Temperature ($T_{boiler}$)
+    - Heat Pump Temperature ($T_{hp}$)
+    - Max Storage Temperature ($T_{storage}$)
+    - Collector Temperature ($T_{collector}$)
+  - **Relative/DT Mode**:
+    - Demand Temperature ($T_{demand}$)
+    - DT boiler-demand ($\Delta T_1$) - default: 0K
+    - DT heat pump-boiler ($\Delta T_2$) - default: 0K
+    - DT maximum storage temperature-heat pump ($\Delta T_3$) - default: 5K
+    - DT collector-maximum storage temperature ($\Delta T_4$) - default: 15K
+
+### 2. Calculation Logic
+In Relative/DT Mode, the temperatures are calculated as follows:
+- $T_{boiler} = T_{demand} + \Delta T_1$
+- $T_{hp} = T_{boiler} + \Delta T_2$
+- $T_{storage} = T_{hp} + \Delta T_3$
+- $T_{collector} = T_{storage} + \Delta T_4$
+
+### 3. Mode Switching and Value Carry-over
+When switching between modes, the values must be converted to maintain the current setpoints:
+
+**From Absolute to Relative/DT:**
+- $\Delta T_1 = T_{boiler} - T_{demand}$
+- $\Delta T_2 = T_{hp} - T_{boiler}$
+- $\Delta T_3 = T_{storage} - T_{hp}$
+- $\Delta T_4 = T_{collector} - T_{storage}$
+
+**From Relative/DT to Absolute:**
+- $T_{boiler} = T_{demand} + \Delta T_1$
+- $T_{hp} = T_{boiler} + \Delta T_2$
+- $T_{storage} = T_{hp} + \Delta T_3$
+- $T_{collector} = T_{storage} + \Delta T_4$
+
+### 4. Summary of Requirements
+- **Default Mode**: Relative/DT.
+- **Defaults in DT Mode**: $\Delta T_1=0, \Delta T_2=0, \Delta T_3=5, \Delta T_4=15$.
+- **Carry-over**: Bi-directional conversion between absolute temperatures and successive offsets.
+
