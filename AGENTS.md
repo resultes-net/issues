@@ -43,6 +43,9 @@ be picked up by `keel` running inside the Kubernetes cluster and updated the run
 
 Pushes to `system`'s main will upload the latests `systems.zip` file to OpenStack's Swift, to be consumed by the runners.
 
-
-
-
+## A note on changing the parameters classes in `pydantic-models`
+The structure of the simulation parmaters passed via the web UI through the server into the database are defined in `pydantic-models`
+(source of truth). They end up in the paramters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
+Be sure to generate `alembic` migrations in the `server` repo when changing the paramters `pydantic` models. Make use of the JSON field
+operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
+as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
