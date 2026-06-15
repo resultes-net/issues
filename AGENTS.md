@@ -37,6 +37,12 @@ Other important repos inside the `resultes-net` org:
     generated using `npm run api:gen-model`.
 1. `system`: Defines the [T|P|B]TES (py)TRNSYS system simulations.
 
+## Dependencies
+Most - if not all - Python repos contain a requirements file under `requirements/dev.txt` or similiar (e.g. `requirements-3.13\dev.txt`).
+Don't install any package version: ALWAYS use the check-in requirements files for installing packages. You'll very seldom need to install
+new packages. If you do find yourself needing to do so, however, add the package to the relevant `.in` file, not the pinned `.txt` files
+and run `pip-compile-multi -d requirements --uv --backtracking --no-upgrade` or similar to generated updated, pinned `.txt` files.
+
 ## Deployment
 Most top-level repos will create and publish a Docker image when commits are pushed to `main`. `:latest` images will automatically
 be picked up by `keel` running inside the Kubernetes cluster and updated the running containers inside the cluster.
