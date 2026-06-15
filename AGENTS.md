@@ -49,3 +49,7 @@ The structure of the simulation parmaters passed via the web UI through the serv
 Be sure to generate `alembic` migrations in the `server` repo when changing the paramters `pydantic` models. Make use of the JSON field
 operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
 as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
+
+## A note on referencing pull requests and issues across `results-net`
+In comments on GitHub always precede pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
+as we're operating accross multiple repos and it's less error-prone this way.
