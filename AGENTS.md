@@ -43,6 +43,11 @@ Don't install any package version: ALWAYS use the check-in requirements files fo
 new packages. If you do find yourself needing to do so, however, add the package to the relevant `.in` file, not the pinned `.txt` files
 and run `pip-compile-multi -d requirements --uv --backtracking --no-upgrade` or similar to generated updated, pinned `.txt` files.
 
+The `runner` runs on Windows, so its requirements (`requirements-3.13`) must be compiled on Windows:
+`pip-compile-multi -d requirements-3.13 --uv --no-upgrade --use-cache --backtracking`. The `dev-utils/pip-compile-multi-linux.sh`
+script (in, e.g., `server` and `scheduler`) doesn't run there, and compiling on Linux pins the wrong packages, so don't
+compile the runner's requirements from a Linux (e.g. cloud) session: leave that to a human.
+
 ## Deployment
 Most top-level repos will create and publish a Docker image when commits are pushed to `main`. `:latest` images will automatically
 be picked up by `keel` running inside the Kubernetes cluster and updated the running containers inside the cluster.
