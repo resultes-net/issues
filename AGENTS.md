@@ -54,6 +54,8 @@ be picked up by `keel` running inside the Kubernetes cluster and updated the run
 
 Pushes to `system`'s main will upload the latests `systems.zip` file to OpenStack's Swift, to be consumed by the runners.
 
+Pushes to `runner`'s `main` build a new runner disk image in CI: building it isn't a manual step.
+
 ## A note on changing the parameters classes in `pydantic-models`
 The structure of the simulation parmaters passed via the web UI through the server into the database are defined in `pydantic-models`
 (source of truth). They end up in the paramters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
@@ -74,3 +76,7 @@ as they lead to `pydantic` deserialization errors when retrieving stale JSON par
 ## A note on referencing pull requests and issues across `results-net`
 In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
 as we're operating accross multiple repos and it's less error-prone this way.
+
+## Issues and the project board
+Issues that are implemented and waiting to be tested go to "In review" in the org's "ResulTES" project (there's no "To test" column;
+add the issue to the project first if it isn't on it). Close them only after they have been tested.
