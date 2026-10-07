@@ -61,6 +61,16 @@ Be sure to generate `alembic` migrations in the `server` repo when changing the 
 operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
 as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
 
+## Submodules (`pydantic-models`, `openapi-schema`, ...)
+1. `server`, `scheduler` and `runner` each have their *own* `pydantic-models` submodule, and each parses the simulation with it
+    (the runner also runs the `systems` scripts with it). After changing `pydantic-models`, update the pin in all three, not only
+    where the changed model is used. Pydantic ignores unknown fields by default, so a component with an outdated checkout doesn't
+    fail on a new (e.g. defaulted) field: it silently drops it, e.g. the scheduler then passes parameters on to the runner without it.
+1. `pydantic-models` and `openapi-schema` have no CI, and the other repos' CI checks out submodules at their pinned commits. So
+    pushing a submodule repo deploys nothing; pushing a pin in a top-level repo does.
+1. To use an unpushed submodule commit from another local checkout: in `<repo>/<submodule>`, `git fetch <path to the checkout
+    with the commit> main`, then check out or rebase onto `FETCH_HEAD`, and commit the new pin in `<repo>`.
+
 ## A note on referencing pull requests and issues across `results-net`
 In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
 as we're operating accross multiple repos and it's less error-prone this way.
