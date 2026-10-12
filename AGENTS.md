@@ -78,5 +78,7 @@ In comments on GitHub always reference pull requests/issue/... references with t
 as we're operating accross multiple repos and it's less error-prone this way.
 
 ## Issues and the project board
+Add new issues to the org's "ResulTES" project, with status "Backlog" unless told otherwise.
+
 Issues that are implemented and waiting to be tested go to "In review" in the org's "ResulTES" project (there's no "To test" column;
 add the issue to the project first if it isn't on it). Close them only after they have been tested.
