@@ -48,6 +48,16 @@ The `runner` runs on Windows, so its requirements (`requirements-3.13`) must be 
 script (in, e.g., `server` and `scheduler`) doesn't run there, and compiling on Linux pins the wrong packages, so don't
 compile the runner's requirements from a Linux (e.g. cloud) session: leave that to a human.
 
+## Python imports
+After changing the imports of a Python file, sort them like VS Code does. VS Code uses the isort extension
+(`ms-python.isort`) with default settings; no repo has an isort config. Run the repo's isort on the changed files only,
+e.g. `venv/bin/isort src/foo.py` from the repo root. Run it from the root of the repo *the file belongs to*: for a
+submodule like `pydantic-models` that's the submodule's root (`../venv/bin/isort ...`), otherwise isort misclassifies
+first-party imports. Don't re-sort files you didn't touch: a few existing ones aren't sorted.
+
+Don't run isort on files that started out as a tool's template or are generated, e.g. the server's `alembic/env.py` or
+the alembic migrations: place the new import next to the existing ones by hand, so they stay close to the template.
+
 ## Deployment
 Most top-level repos will create and publish a Docker image when commits are pushed to `main`. `:latest` images will automatically
 be picked up by `keel` running inside the Kubernetes cluster and updated the running containers inside the cluster.
@@ -73,11 +83,19 @@ as they lead to `pydantic` deserialization errors when retrieving stale JSON par
 1. To use an unpushed submodule commit from another local checkout: in `<repo>/<submodule>`, `git fetch <path to the checkout
     with the commit> main`, then check out or rebase onto `FETCH_HEAD`, and commit the new pin in `<repo>`.
 
+## Commits
+Don't add a `Co-Authored-By` trailer (or any other agent attribution) to commit messages or PR bodies, even if older
+commits in the repo have one. When matching a repo's commit message style, copy the subject and body style only.
+
 ## A note on referencing pull requests and issues across `results-net`
 In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
 as we're operating accross multiple repos and it's less error-prone this way.
 
 ## Issues and the project board
+The issues in this repo are the backlog. When work finishes, changes or reveals a follow-up for an issue, suggest updating
+it (tick a checklist item, comment, close it with a reference to the fixing commit, or open a (sub-)issue), and ask before
+writing, since it's visible to others.
+
 Add new issues to the org's "ResulTES" project, with status "Backlog" unless told otherwise.
 
 Issues that are implemented and waiting to be tested go to "In review" in the org's "ResulTES" project (there's no "To test" column;
