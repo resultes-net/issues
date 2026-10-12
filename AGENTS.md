@@ -82,3 +82,6 @@ Add new issues to the org's "ResulTES" project, with status "Backlog" unless tol
 
 Issues that are implemented and waiting to be tested go to "In review" in the org's "ResulTES" project (there's no "To test" column;
 add the issue to the project first if it isn't on it). Close them only after they have been tested.
+
+The project's workflows link "Done" and closing: moving an issue to "Done" closes it, and closing an issue moves it to "Done".
+So do only one of the two.
