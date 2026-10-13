@@ -66,6 +66,13 @@ Pushes to `system`'s main will upload the latests `systems.zip` file to OpenStac
 
 Pushes to `runner`'s `main` build a new runner disk image in CI: building it isn't a manual step.
 
+A runner keeps the disk image it was created from, and with it its `pydantic-models`, even after the scheduler deletes that
+image as stale. The scheduler creates runners on demand, and also keeps one with a free job slot while any user has logged
+in within the last 35 minutes (`workflow.py`), so a runner can be created at any time, e.g. right after a scheduler
+deployment. So when a change needs the new runner (e.g. a `pydantic-models` change), restart the scheduler deployment
+after `runner`'s CI has uploaded the new image, when no simulations are running: it deletes all runners on startup (unless
+it's configured to keep them alive), and creates new ones from the new image.
+
 ## A note on changing the parameters classes in `pydantic-models`
 The structure of the simulation parmaters passed via the web UI through the server into the database are defined in `pydantic-models`
 (source of truth). They end up in the paramters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
