@@ -108,5 +108,24 @@ Add new issues to the org's "ResulTES" project, with status "Backlog" unless tol
 Issues that are implemented and waiting to be tested go to "In review" in the org's "ResulTES" project (there's no "To test" column;
 add the issue to the project first if it isn't on it). Close them only after they have been tested.
 
+Move the issues you work on through the project's statuses yourself, without asking: "In progress" when you start,
+"In review" when it's implemented (pushed or ready to push) and waiting to be tested. Status changes aren't "writing" in
+the sense above; comments, edits and closing still need asking. The project is number 1 of the `resultes-net` owner
+(`gh project item-add 1 --owner resultes-net --url <issue URL> --format json --jq .id` adds an issue and prints its item
+ID). To set the status:
+
+```sh
+gh project item-edit --project-id PVT_kwDODGNNj84A5AUL --field-id PVTSSF_lADODGNNj84A5AULzgt4HPs \
+    --id <item ID> --single-select-option-id <option ID>
+```
+
+The options: Backlog `f75ad846`, Ready `61e4505c`, In progress `47fc9ee4`, In review `df73e18b`, Done `98236657`. An
+issue's item ID (`gh issue view --json projectItems` doesn't include it; empty means the issue isn't on the project yet):
+
+```sh
+gh project item-list 1 --owner resultes-net --limit 500 --format json \
+    --jq '.items[] | select(.content.number == <number> and .content.repository == "resultes-net/issues") | .id'
+```
+
 The project's workflows link "Done" and closing: moving an issue to "Done" closes it, and closing an issue moves it to "Done".
 So do only one of the two.
