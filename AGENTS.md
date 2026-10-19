@@ -1,12 +1,12 @@
 # Guidance for LLM-based software development agents for working on the ResulTES project
 
 ## Intro
-ResulTES is a software for runnining dynamical simulations of renewable energy systems including thermal energey storages in online. It uses the
-TRNSYS simulation software as its core computational engine, but wraps it in a FastAPI REST API, exposes that to the Internet and connects as
+ResulTES is a software for running dynamical simulations of renewable energy systems including thermal energy storages online. It uses the
+TRNSYS simulation software as its core computational engine, but wraps it in a FastAPI REST API, exposes that to the Internet and connects a
 Svelte web client to it.
 
 ## Very broad architecture
-ResulTES consist of the following components:
+ResulTES consists of the following components:
 
 1. The client (in repo `client`): the web UI that connects to the "external server" (see below). Written in Svelte/TS.
     Allows user to choose between the three systems (Tank/Pit/Borehole thermal energy storage or [T|P|B]TES), parameterize them
@@ -19,7 +19,7 @@ ResulTES consist of the following components:
     and external server.
 1. The scheduler (repo `scheduler`) which queries the internal servers for submitted simulations, schedules them for
     execution (while trying to be "fair" to the various users) and updates the simulation states which the client
-    queries (pulls) repeatedly to update the user UI. The scheduler also orchestrates the runners which see below.
+    queries (pulls) repeatedly to update the user UI. The scheduler also orchestrates the runners (see below).
 1. The runner(s) (repo `runner`): They actually run the TRNSYS simulations. Unlike all other components which run on Linux docker
     containers inside a Kubernetes cluster, runners run on OpenStack Windows machines (one runner per machine).
     A runner can run up to eight simulations in parallel. Runners are created and deleted by the scheduler. Runners get their inputs
@@ -35,20 +35,22 @@ Other important repos inside the `resultes-net` org:
     Can be updated from the `server` repo which contains `openapi-schema` as a subrepo using the `scripts\export_openapi_json.py`
     script. To use the schema in the `client`, its `openapi-schema` subrepo needs to be updated. Then, the TS models need to be
     generated using `npm run api:gen-model`.
-1. `system`: Defines the [T|P|B]TES (py)TRNSYS system simulations.
+1. `systems`: Defines the [T|P|B]TES (py)TRNSYS system simulations.
 
-## Dependencies
-Most - if not all - Python repos contain a requirements file under `requirements/dev.txt` or similiar (e.g. `requirements-3.13\dev.txt`).
-Don't install any package version: ALWAYS use the check-in requirements files for installing packages. You'll very seldom need to install
+## Development
+
+### Dependencies
+Most - if not all - Python repos contain a requirements file under `requirements/dev.txt` or similar (e.g. `requirements-3.13\dev.txt`).
+Don't install any package version: ALWAYS use the checked-in requirements files for installing packages. You'll very seldom need to install
 new packages. If you do find yourself needing to do so, however, add the package to the relevant `.in` file, not the pinned `.txt` files
-and run `pip-compile-multi -d requirements --uv --backtracking --no-upgrade` or similar to generated updated, pinned `.txt` files.
+and run `pip-compile-multi -d requirements --uv --backtracking --no-upgrade` or similar to generate updated, pinned `.txt` files.
 
 The `runner` runs on Windows, so its requirements (`requirements-3.13`) must be compiled on Windows:
 `pip-compile-multi -d requirements-3.13 --uv --no-upgrade --use-cache --backtracking`. The `dev-utils/pip-compile-multi-linux.sh`
 script (in, e.g., `server` and `scheduler`) doesn't run there, and compiling on Linux pins the wrong packages, so don't
 compile the runner's requirements from a Linux (e.g. cloud) session: leave that to a human.
 
-## Python imports
+### Python imports
 After changing the imports of a Python file, sort them like VS Code does. VS Code uses the isort extension
 (`ms-python.isort`) with default settings; no repo has an isort config. Run the repo's isort on the changed files only,
 e.g. `venv/bin/isort src/foo.py` from the repo root. Run it from the root of the repo *the file belongs to*: for a
@@ -58,11 +60,32 @@ first-party imports. Don't re-sort files you didn't touch: a few existing ones a
 Don't run isort on files that started out as a tool's template or are generated, e.g. the server's `alembic/env.py` or
 the alembic migrations: place the new import next to the existing ones by hand, so they stay close to the template.
 
+### Changing the parameters classes in `pydantic-models`
+The structure of the simulation parameters passed via the web UI through the server into the database are defined in `pydantic-models`
+(source of truth). They end up in the parameters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
+Be sure to generate `alembic` migrations in the `server` repo when changing the parameters `pydantic` models. Make use of the JSON field
+operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
+as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
+
+### Submodules (`pydantic-models`, `openapi-schema`, ...)
+1. `server`, `scheduler` and `runner` each have their *own* `pydantic-models` submodule, and each parses the simulation with it
+    (the runner also runs the `systems` scripts with it). After changing `pydantic-models`, update the pin in all three, not only
+    where the changed model is used. Pydantic ignores unknown fields by default, so a component with an outdated checkout doesn't
+    fail on a new (e.g. defaulted) field: it silently drops it, e.g. the scheduler then passes parameters on to the runner without it.
+1. `pydantic-models` and `openapi-schema` have no CI, and the other repos' CI checks out submodules at their pinned commits. So
+    pushing a submodule repo deploys nothing; pushing a pin in a top-level repo does.
+1. To use an unpushed submodule commit from another local checkout: in `<repo>/<submodule>`, `git fetch <path to the checkout
+    with the commit> main`, then check out or rebase onto `FETCH_HEAD`, and commit the new pin in `<repo>`.
+
+### Commits
+Don't add a `Co-Authored-By` trailer (or any other agent attribution) to commit messages or PR bodies, even if older
+commits in the repo have one. When matching a repo's commit message style, copy the subject and body style only.
+
 ## Deployment
 Most top-level repos will create and publish a Docker image when commits are pushed to `main`. `:latest` images will automatically
-be picked up by `keel` running inside the Kubernetes cluster and updated the running containers inside the cluster.
+be picked up by `keel` running inside the Kubernetes cluster, which updates the running containers inside the cluster.
 
-Pushes to `system`'s main will upload the latests `systems.zip` file to OpenStack's Swift, to be consumed by the runners.
+Pushes to `systems`'s `main` will upload the latest `systems.zip` file to OpenStack's Swift, to be consumed by the runners.
 
 Pushes to `runner`'s `main` build a new runner disk image in CI: building it isn't a manual step.
 
@@ -79,45 +102,27 @@ outages, e.g. don't roll out changes that restart the scheduler while simulation
 Read-only database queries are fine. Destructive changes (data migrations that delete or rewrite rows, deletions) need
 approval.
 
-## Logs
-TRNSYS writes one log per variation. The runner uploads it to Swift with the other results: container `resultes-results`,
-`results/<variation ID>/<deck name>.log` (e.g. `complete-0.log`). The client's "Logs" page shows that file. A simulation
-that fails while its variations are being created has no variation, and so no TRNSYS log.
+## Logs and results
+TRNSYS writes one log per variation. The runner uploads it to Swift with the other results, container `resultes-results`:
 
-Besides the log, Swift has `results/<variation ID>.zip`, the variation's whole working directory: the generated `.dck`,
-the per-time-step printer files (`*.prt`), `processing.log` and, for TTES, `hourly.csv`. A listing with
-`--prefix results/<variation ID>/` doesn't show it.
+1. `results/<variation ID>/`: the TRNSYS log (`<deck name>.log`, e.g. `complete-0.log`, which the client's "Logs" page
+    shows), `output.json` and the plots.
+1. `results/<variation ID>.zip`: the variation's whole working directory (the generated `.dck`, the per-time-step printer
+    files, `processing.log`, ...). A listing with `--prefix results/<variation ID>/` doesn't show it.
+
+A simulation that fails while its variations are being created has no variation, and so no TRNSYS log and no results.
 
 The logs of the components in Kubernetes (scheduler, internal and external server, client, ...) are collected in Loki,
 with one month of retention. `kubectl logs` only goes back to the start of the current pod, so query Loki for anything
 older, e.g. a scheduler crash. How to access it is described in the `argocd` repo's `AGENTS.md` (private).
 
-## A note on changing the parameters classes in `pydantic-models`
-The structure of the simulation parmaters passed via the web UI through the server into the database are defined in `pydantic-models`
-(source of truth). They end up in the paramters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
-Be sure to generate `alembic` migrations in the `server` repo when changing the paramters `pydantic` models. Make use of the JSON field
-operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
-as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
+## GitHub
 
-## Submodules (`pydantic-models`, `openapi-schema`, ...)
-1. `server`, `scheduler` and `runner` each have their *own* `pydantic-models` submodule, and each parses the simulation with it
-    (the runner also runs the `systems` scripts with it). After changing `pydantic-models`, update the pin in all three, not only
-    where the changed model is used. Pydantic ignores unknown fields by default, so a component with an outdated checkout doesn't
-    fail on a new (e.g. defaulted) field: it silently drops it, e.g. the scheduler then passes parameters on to the runner without it.
-1. `pydantic-models` and `openapi-schema` have no CI, and the other repos' CI checks out submodules at their pinned commits. So
-    pushing a submodule repo deploys nothing; pushing a pin in a top-level repo does.
-1. To use an unpushed submodule commit from another local checkout: in `<repo>/<submodule>`, `git fetch <path to the checkout
-    with the commit> main`, then check out or rebase onto `FETCH_HEAD`, and commit the new pin in `<repo>`.
-
-## Commits
-Don't add a `Co-Authored-By` trailer (or any other agent attribution) to commit messages or PR bodies, even if older
-commits in the repo have one. When matching a repo's commit message style, copy the subject and body style only.
-
-## A note on referencing pull requests and issues across `results-net`
+### Referencing pull requests and issues across `resultes-net`
 In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
-as we're operating accross multiple repos and it's less error-prone this way.
+as we're operating across multiple repos and it's less error-prone this way.
 
-## Issues and the project board
+### Issues and the project board
 The issues in this repo are the backlog. When work finishes, changes or reveals a follow-up for an issue, suggest updating
 it (tick a checklist item, comment, close it with a reference to the fixing commit, or open a (sub-)issue), and ask before
 writing, since it's visible to others.
