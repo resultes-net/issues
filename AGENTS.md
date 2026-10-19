@@ -84,6 +84,10 @@ TRNSYS writes one log per variation. The runner uploads it to Swift with the oth
 `results/<variation ID>/<deck name>.log` (e.g. `complete-0.log`). The client's "Logs" page shows that file. A simulation
 that fails while its variations are being created has no variation, and so no TRNSYS log.
 
+Besides the log, Swift has `results/<variation ID>.zip`, the variation's whole working directory: the generated `.dck`,
+the per-time-step printer files (`*.prt`), `processing.log` and, for TTES, `hourly.csv`. A listing with
+`--prefix results/<variation ID>/` doesn't show it.
+
 The logs of the components in Kubernetes (scheduler, internal and external server, client, ...) are collected in Loki,
 with one month of retention. `kubectl logs` only goes back to the start of the current pod, so query Loki for anything
 older, e.g. a scheduler crash. How to access it is described in the `argocd` repo's `AGENTS.md` (private).
