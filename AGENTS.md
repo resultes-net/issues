@@ -124,6 +124,12 @@ Reference issues and pull requests by their full URL everywhere: in comments, is
 https://github.com/resultes-net/server/pull/4, not `#4` or `resultes-net/server#4`). A bare `#4` points to the current
 repo, which is often the wrong one, and only full URLs can be opened outside GitHub.
 
+### Writing issues
+Write issues so that someone without the conversation's context, e.g. another agent, can pick them up: the
+background, where the relevant code, data and logs are, what's been ruled out, and when the issue is done. Name what's
+still unknown or unchecked. Don't copy anything that has to stay private (e.g. user data, see the `support` repo);
+link to it instead.
+
 ### Issues and the project board
 The issues in this repo are the backlog. When work finishes, changes or reveals a follow-up for an issue, suggest updating
 it (tick a checklist item, comment, close it with a reference to the fixing commit, or open a (sub-)issue), and ask before
