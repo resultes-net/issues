@@ -73,6 +73,21 @@ deployment. So when a change needs the new runner (e.g. a `pydantic-models` chan
 after `runner`'s CI has uploaded the new image, when no simulations are running: it deletes all runners on startup (unless
 it's configured to keep them alive), and creates new ones from the new image.
 
+dev.resultes.net is public and semi-production: besides the team, external early users have used it since 2026-10-05.
+Their results and uptime matter: keep old results working (https://github.com/resultes-net/issues/issues/50) and avoid
+outages, e.g. don't roll out changes that restart the scheduler while simulations are running (see `scheduler/AGENTS.md`).
+Read-only database queries are fine. Destructive changes (data migrations that delete or rewrite rows, deletions) need
+approval.
+
+## Logs
+TRNSYS writes one log per variation. The runner uploads it to Swift with the other results: container `resultes-results`,
+`results/<variation ID>/<deck name>.log` (e.g. `complete-0.log`). The client's "Logs" page shows that file. A simulation
+that fails while its variations are being created has no variation, and so no TRNSYS log.
+
+The logs of the components in Kubernetes (scheduler, internal and external server, client, ...) are collected in Loki,
+with one month of retention. `kubectl logs` only goes back to the start of the current pod, so query Loki for anything
+older, e.g. a scheduler crash. How to access it is described in the `argocd` repo's `AGENTS.md` (private).
+
 ## A note on changing the parameters classes in `pydantic-models`
 The structure of the simulation parmaters passed via the web UI through the server into the database are defined in `pydantic-models`
 (source of truth). They end up in the paramters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
