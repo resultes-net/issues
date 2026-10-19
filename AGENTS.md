@@ -119,9 +119,10 @@ older, e.g. a scheduler crash. How to access it is described in the `argocd` rep
 
 ## GitHub
 
-### Referencing pull requests and issues across `resultes-net`
-In comments on GitHub always reference pull requests/issue/... references with the full URI (e.g.: https://github.com/resultes-net/server/pull/4 not #4)
-as we're operating across multiple repos and it's less error-prone this way.
+### Referencing pull requests and issues
+Reference issues and pull requests by their full URL everywhere: in comments, issue bodies, commit messages and docs (e.g.
+https://github.com/resultes-net/server/pull/4, not `#4` or `resultes-net/server#4`). A bare `#4` points to the current
+repo, which is often the wrong one, and only full URLs can be opened outside GitHub.
 
 ### Issues and the project board
 The issues in this repo are the backlog. When work finishes, changes or reveals a follow-up for an issue, suggest updating
