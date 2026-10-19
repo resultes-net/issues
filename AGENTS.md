@@ -62,7 +62,7 @@ the alembic migrations: place the new import next to the existing ones by hand, 
 
 ### Changing the parameters classes in `pydantic-models`
 The structure of the simulation parameters passed via the web UI through the server into the database are defined in `pydantic-models`
-(source of truth). They end up in the parameters column of the simulation table. That column is a PostgreSQL/SQLModel/SQLAlchemy JSON column.
+(source of truth). They end up in the `parameters` table (column `parameters`, keyed by `simulation_id`), a PostgreSQL/SQLModel/SQLAlchemy JSON column.
 Be sure to generate `alembic` migrations in the `server` repo when changing the parameters `pydantic` models. Make use of the JSON field
 operators `->`, `->>`, etc. when writing these migrations. If these migrations are omitted, existing simulations cannot be accessed
 as they lead to `pydantic` deserialization errors when retrieving stale JSON parameters from the DB.
@@ -85,7 +85,8 @@ commits in the repo have one. When matching a repo's commit message style, copy 
 Most top-level repos will create and publish a Docker image when commits are pushed to `main`. `:latest` images will automatically
 be picked up by `keel` running inside the Kubernetes cluster, which updates the running containers inside the cluster.
 
-Pushes to `systems`'s `main` will upload the latest `systems.zip` file to OpenStack's Swift, to be consumed by the runners.
+*Every* push to `systems`'s `main` uploads `systems-main.zip` to OpenStack's Swift, to be consumed by the runners, and
+starts a PTES simulation on dev.resultes.net (see `systems/AGENTS.md`).
 
 Pushes to `runner`'s `main` build a new runner disk image in CI: building it isn't a manual step.
 
